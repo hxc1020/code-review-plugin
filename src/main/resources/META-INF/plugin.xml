@@ -1,0 +1,31 @@
+<idea-plugin>
+    <id>red.hxc.code-review-plugin</id>
+    <name>Code Review</name>
+    <vendor email="hao.lin@thoughtworks.com" url="">Thoughtworks</vendor>
+
+    <description><![CDATA[plugin for code review <br/> integration trello]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <toolWindow id="CodeReview" icon="/images/logo_dark.svg" anchor="right" factoryClass="CodeReviewToolWindowFactory"/>
+
+        <projectService serviceImplementation="EditorService"/>
+    </extensions>
+
+    <project-components>
+        <component>
+            <implementation-class>CodeReviewComponent</implementation-class>
+        </component>
+    </project-components>
+
+    <actions>
+        <!-- Add your actions here -->
+        <action id="TestAction" class="TestAction" text="Code Review 1" description="Test right side button">
+            <add-to-group group-id="ToolWindowContextMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
