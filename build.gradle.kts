@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.cli.jvm.plugins.processCompilerPluginsOptions
-import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
-
 plugins {
     id("org.jetbrains.intellij") version "0.7.2"
     java
@@ -17,6 +14,10 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("com.github.salomonbrys.kotson:kotson:2.5.0")
+    implementation("io.joshworks.unirest:unirest-java:1.8.0") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
@@ -24,6 +25,7 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version = "2021.1"
+    setPlugins("git4idea", "com.intellij.tasks", "org.intellij.plugins.markdown")
 }
 tasks.getByName<Test>("test") {
     useJUnitPlatform()

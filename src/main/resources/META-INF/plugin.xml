@@ -11,21 +11,25 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-        <toolWindow id="CodeReview" icon="/images/logo_dark.svg" anchor="right" factoryClass="CodeReviewToolWindowFactory"/>
+        <toolWindow id="CodeReview" anchor="bottom" icon="/images/logo_dark.svg"
+                    factoryClass="red.hxc.plugin.CodeReviewToolWindowFactory"/>
+        <applicationConfigurable groupId="tools" displayName="Code Review" id="code.review.setting.id"
+                                 instance="red.hxc.plugin.setting.CodeReviewSettingConfigurable"/>
 
-        <projectService serviceImplementation="EditorService"/>
+        <applicationService serviceImplementation="red.hxc.plugin.DataPersistentService"/>
+        <projectService serviceImplementation="red.hxc.plugin.EditorService"/>
     </extensions>
 
     <project-components>
         <component>
-            <implementation-class>CodeReviewComponent</implementation-class>
+            <implementation-class>red.hxc.plugin.CodeReviewComponent</implementation-class>
         </component>
     </project-components>
 
     <actions>
         <!-- Add your actions here -->
-        <action id="TestAction" class="TestAction" text="Code Review 1" description="Test right side button">
-            <add-to-group group-id="ToolWindowContextMenu" anchor="last"/>
-        </action>
     </actions>
+    <depends>Git4Idea</depends>
+    <depends>com.intellij.tasks</depends>
+    <depends>org.intellij.plugins.markdown</depends>
 </idea-plugin>

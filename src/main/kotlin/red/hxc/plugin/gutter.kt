@@ -1,6 +1,7 @@
+package red.hxc.plugin
+
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.event.*
 import com.intellij.openapi.editor.ex.EditorEx
@@ -9,11 +10,13 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.KeyWithDefaultValue
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.Processor
+import red.hxc.plugin.component.AddReviewDialog
 import javax.swing.Icon
 import kotlin.math.min
 
@@ -90,7 +93,7 @@ class GutterIconManager(private val editor: Editor) : EditorMouseMotionListener,
     }
 }
 
-val HIGHLIGHTER = KeyWithDefaultValue.create("HIGHLIGHTER", false)
+val HIGHLIGHTER = KeyWithDefaultValue.create("red.hxc.plugin.getHIGHLIGHTER", false)
 val GUTTER_ICON = if (ColorUtil.isDark(JBColor.background())) {
     IconLoader.getIcon("/images/gutter_icon_dark.svg", HighlighterProcessor::class.java)
 } else {
@@ -141,27 +144,14 @@ class NewCodeMarkGutterIconRendererClickAction(
     val onClick: () -> Unit
 ) :
     DumbAwareAction() {
+
     override fun actionPerformed(e: AnActionEvent) {
-        ApplicationManager.getApplication().invokeLater {
-            val project = editor.project
-            if (!editor.selectionModel.hasSelection()) {
-                val startOffset = editor.document.getLineStartOffset(line)
-                val endOffset = editor.document.getLineEndOffset(line)
-                editor.selectionModel.setSelection(startOffset, endOffset)
-            }
-            project?.codeReview?.show {
-                project.editorService?.addComment(
-                    Comment(
-                        editor.document.uri,
-                        editor.selectionOrCurrentLine,
-                        editor.document.file?.fileType,
-                        editor.selectionModel.selectedText ?: ""
-                    )
-                )
-                onClick()
-            }
-            project?.codeReview?.repaint()
-        }
+        val disposable = Disposer.newDisposable()
+        val dialog = AddReviewDialog(editor)
+        dialog.repaint()
+        Disposer.register(dialog.disposable, disposable)
+        dialog.showAndGet()
     }
+
 }
 
