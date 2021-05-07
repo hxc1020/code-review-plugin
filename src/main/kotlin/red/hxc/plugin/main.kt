@@ -13,6 +13,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import red.hxc.plugin.component.ReviewListPanel
+import red.hxc.plugin.setting.trello
 import red.hxc.plugin.setting.trelloName
 
 const val CODE_REVIEW_ID = "CodeReview"
@@ -130,6 +131,7 @@ class EditorService {
     fun remove(editor: Editor) {
     }
 
-    fun addComment(new: Review) {
+    fun addComment(review: Review) {
+        trello.createReview(review)
     }
 }

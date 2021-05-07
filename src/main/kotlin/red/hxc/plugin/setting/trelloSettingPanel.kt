@@ -26,15 +26,7 @@ val trelloBoardsPanel = panel {
         comboBox.addItemListener { event ->
             dataPersistent.setTrelloBoardId(userBoardsNamesMap[event.item.toString()]?.id)
             dataPersistent.setMembers(trello.queryBoardMembers())
-            val lists = trello.queryList() // ?: todo message
-            if (dataPersistent.getCardList() == null
-                || lists?.contains(dataPersistent.getCardList()) == false
-                || dataPersistent.getCardList()!!.name != "${today.year}-${today.monthValue}"
-            ) {
-                val cardList = (lists?.firstOrNull { it.name == "${today.year}-${today.monthValue}" }
-                    ?: trello.createCardList(today) ?: return@addItemListener)
-                dataPersistent.setCardList(cardList)
-            }
+            trello.refreshList()
         }
         dataPersistent.getTrelloBoardId()?.let {
             comboBox.item = userBoardsIdsMap[it]?.name

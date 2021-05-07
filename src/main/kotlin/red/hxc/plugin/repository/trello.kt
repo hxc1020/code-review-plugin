@@ -1,13 +1,12 @@
 package red.hxc.plugin.repository
 
+import com.intellij.openapi.ui.Messages
 import com.intellij.tasks.trello.TrelloRepository
 import com.intellij.tasks.trello.TrelloRepositoryType
 import io.joshworks.restclient.http.HttpResponse
 import io.joshworks.restclient.http.Json
 import io.joshworks.restclient.http.Unirest
-import red.hxc.plugin.CardList
-import red.hxc.plugin.Member
-import red.hxc.plugin.dataPersistent
+import red.hxc.plugin.*
 import red.hxc.plugin.repository.Trello.TrelloApi.*
 import red.hxc.plugin.setting.trello
 import java.time.LocalDate
@@ -76,6 +75,20 @@ class Trello(
         )?.asListOf(SimpleBoard::class.java)
     }
 
+    fun refreshList() {
+        val today = LocalDate.now()
+        val lists = queryList()
+        if (lists?.isEmpty() == true)
+            Messages.showInfoMessage("There is no list for this month. We will create one.", "Code Review Plugin")
+        if (dataPersistent.getCardList() == null
+            || lists?.contains(dataPersistent.getCardList()) == false
+            || dataPersistent.getCardList()!!.name != "${today.year}-${today.monthValue}"
+        ) {
+            val cardList = (lists?.firstOrNull { it.name == "${today.year}-${today.monthValue}" }
+                ?: createCardList(today) ?: return)
+            dataPersistent.setCardList(cardList)
+        }
+    }
 
     fun queryCurrentBoard(): Json? {
         val boardId = dataPersistent.getTrelloBoardId() ?: return null
@@ -97,18 +110,7 @@ class Trello(
         meRecords = baseRepository.currentUser?.let { historyRecords[it.username] } ?: emptyList()
     }
 
-    fun initTodayCard() {
-        val today = LocalDate.now()
-        if (cards.isEmpty()) {
-            refreshCards()
-        }
-        todayCard =
-            (cards.firstOrNull { it.name == "${today.year}-${today.monthValue}-${today.dayOfMonth}" }
-                ?: trello.createCard())
-                ?: return
-    }
-
-    fun queryList(): List<CardList>? {
+    private fun queryList(): List<CardList>? {
         val boardId = dataPersistent.getTrelloBoardId() ?: return null
         return query(
             BOARD_LIST,
@@ -120,6 +122,41 @@ class Trello(
         CARD,
         routeParams = mapOf("id" to boardId)
     )
+
+    fun createReview(review: Review) {
+        initTodayCard()
+        val memberMap = dataPersistent.getMembers().associateBy { it.id }
+        val memberName = memberMap[review.userId]?.fullName
+        val checkList = todayCard?.checklists?.firstOrNull { it.name == memberName } ?: createCheckList(memberName)
+        val item = createCheckItem(checkList.id, review.comment)
+        createFileRelationShip(review.code, item.id)
+    }
+
+    private fun createFileRelationShip(code: Code, id: String) {
+        TODO("Not yet implemented")
+    }
+
+    private fun createCheckItem(id: String, comment: String): CheckItem {
+        TODO("Not yet implemented")
+    }
+
+    private fun createCheckList(memberName: String?): CheckList {
+        TODO("Not yet implemented")
+    }
+
+    fun initTodayCard() {
+        if (cards.isEmpty()) refreshCards()
+        val today = LocalDate.now()
+        if (cards.isEmpty())
+            Messages.showInfoMessage("There is no list for this month. We will create one.", "Code Review Plugin")
+        val todayStr = "${today.year}-${today.monthValue}-${today.dayOfMonth}"
+        if (todayCard == null
+            || cards.firstOrNull { it.id == todayCard?.id && it.name == todayStr } == null
+            || todayCard!!.name != todayStr
+        ) {
+            todayCard = createCard()
+        }
+    }
 
     private fun queryCards(): List<Card>? {
         return query(
@@ -235,6 +272,7 @@ class Trello(
 
         return response?.body()
     }
+
     // boards "https://api.trello.com/1/members/me/boards"
     // token "0e990a39ddabac457d4769c337b350bc193f328b7cd4362a5f7aa0bc8ef0b180"
 }
