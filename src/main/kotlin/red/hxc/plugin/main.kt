@@ -13,6 +13,9 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import red.hxc.plugin.component.ReviewListPanel
+import red.hxc.plugin.repository.historyRecords
+import red.hxc.plugin.repository.meRecords
+import red.hxc.plugin.repository.todayRecords
 import red.hxc.plugin.setting.trello
 import red.hxc.plugin.setting.trelloName
 
@@ -62,35 +65,42 @@ class CodeReviewComponent(private val project: Project) : Disposable {
     }
 }
 
+enum class ContentTab {
+    Today, Me, History
+}
+
+val contentMap = mutableMapOf<ContentTab, ReviewListPanel?>(
+    ContentTab.Today to null,
+    ContentTab.Me to null,
+    ContentTab.History to null
+)
+
+fun refreshReviewContent() {
+    trello.refreshAll()
+    contentMap[ContentTab.Today]?.reload(todayRecords)
+    contentMap[ContentTab.Me]?.reload(mapOf(ContentTab.Me.name to meRecords))
+    contentMap[ContentTab.History]?.reload(historyRecords)
+}
+
 class CodeReviewToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        toolWindow.contentManager.addContent(
-            toolWindow.contentManager.factory.createContent(
-                ReviewListPanel(project),
-                "Today",
-                false
-            ).apply {
-                isCloseable = false
-            }
-        )
-        toolWindow.contentManager.addContent(
-            toolWindow.contentManager.factory.createContent(
-                ReviewListPanel(project),
-                "Me",
-                false
-            ).apply {
-                isCloseable = false
-            }
-        )
-        toolWindow.contentManager.addContent(
-            toolWindow.contentManager.factory.createContent(
-                ReviewListPanel(project),
-                "History",
-                false
-            ).apply {
-                isCloseable = false
-            }
-        )
+        trello.refreshAll()
+        contentMap[ContentTab.Today] =
+            ReviewListPanel(project).apply { reload(todayRecords) }
+        contentMap[ContentTab.Me] = ReviewListPanel(project).apply { reload(mapOf(ContentTab.Me.name to meRecords)) }
+        contentMap[ContentTab.History] = ReviewListPanel(project).apply { reload(historyRecords) }
+
+        contentMap.forEach { (tabTitle, panel) ->
+            toolWindow.contentManager.addContent(
+                toolWindow.contentManager.factory.createContent(
+                    panel,
+                    tabTitle.name,
+                    false
+                ).apply {
+                    isCloseable = false
+                }
+            )
+        }
     }
 
 }

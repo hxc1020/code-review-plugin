@@ -10,6 +10,7 @@ import com.intellij.ui.layout.GrowPolicy
 import com.intellij.ui.layout.panel
 import org.jetbrains.annotations.NotNull
 import red.hxc.plugin.*
+import red.hxc.plugin.setting.trello
 import javax.swing.JComponent
 
 
@@ -44,10 +45,6 @@ class AddReviewDialog(
                 }
             }
             row {
-                button("test") {
-                }
-            }
-            row {
                 val preview = genPreviewEditor(psiFile)
                 preview?.component?.apply {
                     setSize(400, 200)
@@ -77,6 +74,8 @@ class AddReviewDialog(
                 )
             )
         )
+        trello.refreshAll()
+        refreshReviewContent()
     }
 
     private fun getOffset(position: VisualPosition?) = position?.let { editor.visualPositionToOffset(it) } ?: 0

@@ -7,7 +7,7 @@ import io.joshworks.restclient.http.HttpResponse
 import io.joshworks.restclient.http.Json
 import io.joshworks.restclient.http.Unirest
 import red.hxc.plugin.*
-import red.hxc.plugin.repository.Trello.TrelloApi.*
+import red.hxc.plugin.repository.TrelloApi.*
 import red.hxc.plugin.setting.trello
 import java.time.LocalDate
 
@@ -64,6 +64,11 @@ var todayCard: Card? = null
 var cards: List<Card> = emptyList()
 var historyRecords: Map<String, List<CheckItem>> = emptyMap()
 var meRecords: List<CheckItem> = emptyList()
+var todayRecords: Map<String, List<CheckItem>> = emptyMap()
+var fileRelationMap: Map<String, Code> = emptyMap()
+var memberMap: Map<String, Member> = dataPersistent.getMembers().filter { it.id != null }.associateBy { it.id!! }
+
+const val FILE_RELATION_SPLITTER = "|"
 
 class Trello(
     private val baseRepository: TrelloRepository
@@ -98,8 +103,50 @@ class Trello(
         )
     }
 
-    fun refreshCards() {
+    fun refreshAll() {
         cards = trello.queryCards() ?: return
+        refreshHistory()
+        refreshMe()
+        refreshToday()
+        refreshFileRelation()
+    }
+
+    private fun refreshFileRelation() {
+        fileRelationMap = cards.asSequence()
+            .flatMap { it.actions }
+            .map { it.data.text }
+            .map {
+                val split = it.split(FILE_RELATION_SPLITTER)
+                split[0] to Code(split[1], split[2].toInt(), split[3].toInt())
+            }.toMap()
+    }
+
+    private fun refreshToday() {
+        val today = LocalDate.now()
+        val todayStr = "${today.year}-${today.monthValue}-${today.dayOfMonth}"
+
+        todayCard = cards.firstOrNull { it.name == todayStr }
+
+        if (cards.isEmpty())
+            Messages.showInfoMessage("", "Code Review Plugin")
+        if (todayCard == null
+//            || cards.firstOrNull { it.id == todayCard?.id && it.name == todayStr } == null
+            || todayCard!!.name != todayStr
+        ) {
+            todayCard = createCard()
+        }
+        todayRecords = todayCard?.let { card ->
+            card.checklists
+                .associateBy { it.name }
+                .mapValues { entry -> entry.value.checkItems.filter { it.state == ItemState.INCOMPLETE.value } }
+        } ?: emptyMap()
+    }
+
+    private fun refreshMe() {
+        meRecords = baseRepository.currentUser?.let { historyRecords[memberMap[it.id]?.fullName] } ?: emptyList()
+    }
+
+    private fun refreshHistory() {
         historyRecords = cards.asSequence()
             .flatMap { it.checklists }
             .groupBy { it.name }
@@ -107,7 +154,6 @@ class Trello(
                 it.value.flatMap { checkList -> checkList.checkItems }
                     .filter { item -> item.state == ItemState.INCOMPLETE.value }
             }
-        meRecords = baseRepository.currentUser?.let { historyRecords[it.username] } ?: emptyList()
     }
 
     private fun queryList(): List<CardList>? {
@@ -124,37 +170,37 @@ class Trello(
     )
 
     fun createReview(review: Review) {
-        initTodayCard()
-        val memberMap = dataPersistent.getMembers().associateBy { it.id }
-        val memberName = memberMap[review.userId]?.fullName
-        val checkList = todayCard?.checklists?.firstOrNull { it.name == memberName } ?: createCheckList(memberName)
+        val checkList =
+            todayCard?.checklists?.firstOrNull { it.name == review.userId } ?: createCheckList(review.userId)
+        if (checkList == null) {
+            Messages.showErrorDialog("Error to create check list!", "Add Code Review Error!")
+            return
+        }
         val item = createCheckItem(checkList.id, review.comment)
+        if (item == null) {
+            Messages.showErrorDialog("Error to create check item!", "Add Code Review Error!")
+            return
+        }
+
         createFileRelationShip(review.code, item.id)
+        refreshAll()
     }
 
-    private fun createFileRelationShip(code: Code, id: String) {
-        TODO("Not yet implemented")
+    private fun createFileRelationShip(code: Code, itemId: String) {
+        val (file, start, end) = code
+        val comment = listOf(itemId, file, start, end).joinToString(FILE_RELATION_SPLITTER)
+        post(CREATE_FILE_RELATION, mapOf("id" to todayCard!!.id), mapOf("text" to listOf(comment)))
     }
 
-    private fun createCheckItem(id: String, comment: String): CheckItem {
-        TODO("Not yet implemented")
+    private fun createCheckItem(id: String, comment: String): CheckItem? {
+        return post(CREATE_CHECK_ITEM, mapOf("id" to id), mapOf("name" to listOf(comment)))
+            ?.`as`(CheckItem::class.java)
     }
 
-    private fun createCheckList(memberName: String?): CheckList {
-        TODO("Not yet implemented")
-    }
-
-    fun initTodayCard() {
-        if (cards.isEmpty()) refreshCards()
-        val today = LocalDate.now()
-        if (cards.isEmpty())
-            Messages.showInfoMessage("There is no list for this month. We will create one.", "Code Review Plugin")
-        val todayStr = "${today.year}-${today.monthValue}-${today.dayOfMonth}"
-        if (todayCard == null
-            || cards.firstOrNull { it.id == todayCard?.id && it.name == todayStr } == null
-            || todayCard!!.name != todayStr
-        ) {
-            todayCard = createCard()
+    private fun createCheckList(memberName: String?): CheckList? {
+        return todayCard?.id?.let {
+            post(CREATE_CHECK_LIST, params = mapOf("idCard" to listOf(it), "name" to listOf(memberName ?: "unknown")))
+                ?.`as`(CheckList::class.java)
         }
     }
 
@@ -172,7 +218,7 @@ class Trello(
         )?.`as`(BoardMembers::class.java)?.members
     }
 
-    fun createCardList(today: LocalDate): CardList? {
+    private fun createCardList(today: LocalDate): CardList? {
         return post(
             CREATE_LIST,
             params = mapOf(
@@ -196,47 +242,6 @@ class Trello(
 
     }
 
-    private enum class TrelloApi(val url: String, val params: Map<String, List<String>> = emptyMap()) {
-        BOARDS_FOR_ME(
-            "https://api.trello.com/1/members/{id}/boards",
-            mapOf("fields" to listOf("id", "name", "memberships"))
-        ),
-        BOARD("https://api.trello.com/1/boards/{id}"),
-        BOARD_LIST("https://api.trello.com/1/boards/{id}/lists"),
-        CREATE_LIST("https://api.trello.com/1/lists"),
-        BOARD_MEMBERS(
-            "https://api.trello.com/1/boards/{id}",
-            mapOf(
-                "fields" to listOf("id"),
-                "members" to listOf("all"),
-                "member_fields" to listOf("id", "username", "fullName")
-            )
-        ),
-        CARD(
-            "https://api.trello.com/1/cards/{id}",
-            mapOf(
-                "fields" to listOf(
-                    "id", "name", "desc", "idCheckList", "idList",
-                    "idBoard", "due", "closed", "shortUrl", "idMembers"
-                )
-            )
-        ),
-
-        CARDS(
-            "https://api.trello.com/1/list/{id}/cards",
-            mapOf(
-                "fields" to listOf(
-                    "id", "name", "desc", "idCheckList", "idList",
-                    "idBoard", "due", "closed", "shortUrl", "idMembers"
-                ),
-                "actions" to listOf("commentCard"),
-                "action_fields" to listOf("data"),
-                "checklists" to listOf("all"),
-                "checklist_fields" to listOf("id", "name")
-            )
-        ),
-        CREATE_CARD("https://api.trello.com/1/cards")
-    }
 
     private fun query(
         api: TrelloApi,
@@ -272,9 +277,6 @@ class Trello(
 
         return response?.body()
     }
-
-    // boards "https://api.trello.com/1/members/me/boards"
-    // token "0e990a39ddabac457d4769c337b350bc193f328b7cd4362a5f7aa0bc8ef0b180"
 }
 
 

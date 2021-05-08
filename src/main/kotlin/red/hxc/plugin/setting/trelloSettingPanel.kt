@@ -7,7 +7,6 @@ import com.intellij.ui.layout.GrowPolicy
 import com.intellij.ui.layout.panel
 import red.hxc.plugin.dataPersistent
 import red.hxc.plugin.repository.Trello
-import java.time.LocalDate
 
 val trelloName = TrelloRepositoryType().name
 
@@ -17,7 +16,6 @@ val trello = Trello(trelloRepository)
 
 val trelloBoardsPanel = panel {
     row("Trello Boards: ") {
-        val today = LocalDate.now()
         val userBoards = trelloRepository.fetchUserBoards()
         val userBoardsNamesMap = userBoards.associateBy { it.name }
         val userBoardsIdsMap = userBoards.associateBy { it.id }
