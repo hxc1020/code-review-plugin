@@ -1,6 +1,5 @@
 package red.hxc.plugin.repository
 
-import com.intellij.openapi.ui.Messages
 import com.intellij.tasks.trello.TrelloRepository
 import com.intellij.tasks.trello.TrelloRepositoryType
 import io.joshworks.restclient.http.HttpResponse
@@ -84,7 +83,7 @@ class Trello(
         val today = LocalDate.now()
         val lists = queryList()
         if (lists?.isEmpty() == true)
-            Messages.showInfoMessage("There is no list for this month. We will create one.", "Code Review Plugin")
+            showNotification(globalProject, CodeReviewBundle.message("c.r.notification.create.month.list"))
         if (dataPersistent.getCardList() == null
             || lists?.contains(dataPersistent.getCardList()) == false
             || dataPersistent.getCardList()!!.name != "${today.year}-${today.monthValue}"
@@ -128,7 +127,7 @@ class Trello(
         todayCard = cards.firstOrNull { it.name == todayStr }
 
         if (cards.isEmpty())
-            Messages.showInfoMessage("", "Code Review Plugin")
+            showNotification(globalProject, CodeReviewBundle.message("c.r.notification.create.today.card"))
         if (todayCard == null
 //            || cards.firstOrNull { it.id == todayCard?.id && it.name == todayStr } == null
             || todayCard!!.name != todayStr
@@ -173,12 +172,12 @@ class Trello(
         val checkList =
             todayCard?.checklists?.firstOrNull { it.name == review.userId } ?: createCheckList(review.userId)
         if (checkList == null) {
-            Messages.showErrorDialog("Error to create check list!", "Add Code Review Error!")
+            showNotification(globalProject, CodeReviewBundle.message("c.r.notification.create.check.list.error"))
             return
         }
         val item = createCheckItem(checkList.id, review.comment)
         if (item == null) {
-            Messages.showErrorDialog("Error to create check item!", "Add Code Review Error!")
+            showNotification(globalProject, CodeReviewBundle.message("c.r.notification.create.check.item.error"))
             return
         }
 

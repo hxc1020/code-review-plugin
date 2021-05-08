@@ -18,6 +18,13 @@
 
         <applicationService serviceImplementation="red.hxc.plugin.DataPersistentService"/>
         <projectService serviceImplementation="red.hxc.plugin.EditorService"/>
+
+        <notificationGroup
+                bundle="messages.CodeReviewPluginBundle"
+                displayType="BALLOON"
+                id="Code review plugin"
+                key="c.r.notification.group"
+        />
     </extensions>
 
     <project-components>

@@ -7,8 +7,6 @@ import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
@@ -21,6 +19,7 @@ import red.hxc.plugin.setting.trelloName
 
 const val CODE_REVIEW_ID = "CodeReview"
 var PROJECT_PATH: String? = null
+var globalProject: Project? = null
 
 class CodeReviewComponent(private val project: Project) : Disposable {
     private val toolWindow
@@ -29,7 +28,9 @@ class CodeReviewComponent(private val project: Project) : Disposable {
     override fun dispose() = Unit
 
     init {
+        globalProject = project
         PROJECT_PATH = project.basePath
+        showStartupNotification(project)
         initEditorFactoryListener()
         initRepository()
     }
@@ -37,11 +38,7 @@ class CodeReviewComponent(private val project: Project) : Disposable {
     private fun initRepository() {
         if (dataPersistent.getRepository() == trelloName) {
             val trelloBoardId = dataPersistent.getTrelloBoardId()
-            trelloBoardId ?: JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(
-                "Please config first! </br> Preferences -> Tools -> Code Review",
-                MessageType.ERROR,
-                null
-            )
+            trelloBoardId ?: showNotification(project, CodeReviewBundle.message("c.r.notification.need.config"))
         }
     }
 

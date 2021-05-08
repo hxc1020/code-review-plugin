@@ -45,6 +45,11 @@ class AddReviewDialog(
                 }
             }
             row {
+                button("test") {
+                    showStartupNotification(editor.project ?: return@button)
+                }
+            }
+            row {
                 val preview = genPreviewEditor(psiFile)
                 preview?.component?.apply {
                     setSize(400, 200)
@@ -76,6 +81,7 @@ class AddReviewDialog(
         )
         trello.refreshAll()
         refreshReviewContent()
+        showNotification(editor.project, CodeReviewBundle.message("code.review.add.review.success"))
     }
 
     private fun getOffset(position: VisualPosition?) = position?.let { editor.visualPositionToOffset(it) } ?: 0
