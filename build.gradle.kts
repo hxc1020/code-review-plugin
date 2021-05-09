@@ -25,7 +25,7 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version = "2021.1"
-    setPlugins("git4idea", "com.intellij.tasks", "org.intellij.plugins.markdown")
+    setPlugins("git4idea", "com.intellij.tasks")
 }
 tasks.getByName<Test>("test") {
     useJUnitPlatform()

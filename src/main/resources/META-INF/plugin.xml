@@ -1,13 +1,15 @@
 <idea-plugin>
     <id>red.hxc.code-review-plugin</id>
     <name>Code Review</name>
-    <vendor email="hao.lin@thoughtworks.com" url="">Thoughtworks</vendor>
+    <vendor email="hao.lin@thoughtworks.com" url="https://github.com/linh1020/code-review-plugin">Hao.lin</vendor>
 
     <description><![CDATA[plugin for code review <br/> integration trello]]></description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+    <depends>com.intellij.tasks</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
@@ -36,7 +38,4 @@
     <actions>
         <!-- Add your actions here -->
     </actions>
-    <depends>Git4Idea</depends>
-    <depends>com.intellij.tasks</depends>
-    <depends>org.intellij.plugins.markdown</depends>
 </idea-plugin>

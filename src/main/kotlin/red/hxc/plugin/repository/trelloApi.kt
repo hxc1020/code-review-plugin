@@ -42,5 +42,6 @@ enum class TrelloApi(val url: String, val params: Map<String, List<String>> = em
     CREATE_CARD("https://api.trello.com/1/cards"),
     CREATE_CHECK_LIST("https://api.trello.com/1/checklists"),
     CREATE_CHECK_ITEM("https://api.trello.com/1/checklists/{id}/checkItems"),
-    CREATE_FILE_RELATION("https://api.trello.com/1/cards/{id}/actions/comments")
+    CREATE_FILE_RELATION("https://api.trello.com/1/cards/{id}/actions/comments"),
+    COMPLETE_CHECK_ITEM("https://api.trello.com/1/cards/{id}/checkItem/{idCheckItem}")
 }

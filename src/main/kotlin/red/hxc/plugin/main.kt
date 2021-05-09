@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
+import red.hxc.plugin.ContentTab.*
 import red.hxc.plugin.component.ReviewListPanel
 import red.hxc.plugin.repository.historyRecords
 import red.hxc.plugin.repository.meRecords
@@ -64,27 +65,27 @@ class CodeReviewComponent(private val project: Project) : Disposable {
 }
 
 enum class ContentTab {
-    Today, Me, History
+    Today, Mine, History
 }
 
 val contentMap = mutableMapOf<ContentTab, ReviewListPanel?>(
-    ContentTab.Today to null,
-    ContentTab.Me to null,
-    ContentTab.History to null
+    Today to null,
+    Mine to null,
+    History to null
 )
 
 fun refreshReviewContent() {
     trello.refreshAll()
-    contentMap[ContentTab.Today]?.reload(todayRecords)
-    contentMap[ContentTab.Me]?.reload(mapOf(ContentTab.Me.name to meRecords))
-    contentMap[ContentTab.History]?.reload(historyRecords)
+    contentMap[Today]?.reload(todayRecords)
+    contentMap[Mine]?.reload(mapOf(Mine.name to meRecords))
+    contentMap[History]?.reload(historyRecords)
 }
 
 class CodeReviewToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        contentMap[ContentTab.Today] = ReviewListPanel(project)
-        contentMap[ContentTab.Me] = ReviewListPanel(project)
-        contentMap[ContentTab.History] = ReviewListPanel(project)
+        contentMap[Today] = ReviewListPanel(project, Today)
+        contentMap[Mine] = ReviewListPanel(project, Mine)
+        contentMap[History] = ReviewListPanel(project, History)
 
         contentMap.forEach { (tabTitle, panel) ->
             toolWindow.contentManager.addContent(

@@ -5,6 +5,7 @@ import com.intellij.tasks.trello.TrelloRepositoryType
 import io.joshworks.restclient.http.HttpResponse
 import io.joshworks.restclient.http.Json
 import io.joshworks.restclient.http.Unirest
+import io.joshworks.restclient.request.HttpRequestWithBody
 import red.hxc.plugin.*
 import red.hxc.plugin.repository.TrelloApi.*
 import red.hxc.plugin.setting.trello
@@ -40,7 +41,7 @@ data class CheckList(
 data class CheckItem(
     val id: String,
     val name: String,
-    val state: String,
+    var state: String,
     val idChecklist: String
 ) {
     override fun toString(): String {
@@ -77,6 +78,14 @@ class Trello(
             BOARDS_FOR_ME,
             mapOf("id" to (baseRepository.currentUser ?: return emptyList()).id)
         )?.asListOf(SimpleBoard::class.java)
+    }
+
+    fun updateItemState(checkItemId: String) {
+        put(
+            COMPLETE_CHECK_ITEM,
+            routeParams = mapOf("id" to (todayCard?.id ?: return), "idCheckItem" to checkItemId),
+            params = mapOf("state" to listOf(ItemState.COMPLETE.value))
+        )
     }
 
     fun refreshList() {
@@ -241,7 +250,6 @@ class Trello(
 
     }
 
-
     private fun query(
         api: TrelloApi,
         routeParams: Map<String, String> = emptyMap()
@@ -263,18 +271,23 @@ class Trello(
         api: TrelloApi,
         routeParams: Map<String, String> = emptyMap(),
         params: Map<String, List<String>> = emptyMap()
-    ): Json? {
-        val response: HttpResponse<Json>? =
-            Unirest.post(api.url).apply {
-                header("Accept", "application/json")
-                routeParams.forEach { routeParam(it.key, it.value) }
-                queryString("key", TrelloRepositoryType.DEVELOPER_KEY)
-                queryString("token", baseRepository.password)
-                params.forEach { queryString(it.key, it.value) }
-            }
-                .asJson()
+    ): Json? = Unirest.post(api.url).apply { commonApply(routeParams, params) }.asJson()?.body()
 
-        return response?.body()
+    private fun put(
+        api: TrelloApi,
+        routeParams: Map<String, String> = emptyMap(),
+        params: Map<String, List<String>> = emptyMap()
+    ): Json? = Unirest.put(api.url).apply { commonApply(routeParams, params) }.asJson()?.body()
+
+    private fun HttpRequestWithBody.commonApply(
+        routeParams: Map<String, String>,
+        params: Map<String, List<String>>
+    ) {
+        header("Accept", "application/json")
+        routeParams.forEach { routeParam(it.key, it.value) }
+        queryString("key", TrelloRepositoryType.DEVELOPER_KEY)
+        queryString("token", baseRepository.password)
+        params.forEach { queryString(it.key, it.value) }
     }
 }
 
