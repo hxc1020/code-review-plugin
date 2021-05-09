@@ -67,6 +67,7 @@ class AddReviewDialog(
                 memberId!!,
                 comment!!,
                 Code(
+                    editor.project?.name ?: "unknown",
                     editor.document.file!!.uri!!,
                     getOffset(editor.selectionModel.selectionStartPosition),
                     getOffset(editor.selectionModel.selectionEndPosition)

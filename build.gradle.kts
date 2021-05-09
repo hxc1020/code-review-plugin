@@ -1,3 +1,6 @@
+@file:Suppress("UnstableApiUsage")
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("org.jetbrains.intellij") version "0.7.2"
     java
@@ -43,4 +46,8 @@ java{
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
+}
+
+tasks.publishPlugin{
+    setToken(System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken"))
 }

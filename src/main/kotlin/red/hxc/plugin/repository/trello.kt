@@ -125,7 +125,7 @@ class Trello(
             .map { it.data.text }
             .map {
                 val split = it.split(FILE_RELATION_SPLITTER)
-                split[0] to Code(split[1], split[2].toInt(), split[3].toInt())
+                split[0] to Code(split[1], split[2], split[3].toInt(), split[4].toInt())
             }.toMap()
     }
 
@@ -195,8 +195,8 @@ class Trello(
     }
 
     private fun createFileRelationShip(code: Code, itemId: String) {
-        val (file, start, end) = code
-        val comment = listOf(itemId, file, start, end).joinToString(FILE_RELATION_SPLITTER)
+        val (project, file, start, end) = code
+        val comment = listOf(itemId, project, file, start, end).joinToString(FILE_RELATION_SPLITTER)
         post(CREATE_FILE_RELATION, mapOf("id" to todayCard!!.id), mapOf("text" to listOf(comment)))
     }
 

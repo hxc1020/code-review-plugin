@@ -68,7 +68,9 @@ class ReviewListPanel(
                                         }
                                     }
                                     jbCheckBox()
-                                    val label: CellBuilder<JLabel> = label(item.name)
+                                    val code = fileRelationMap[item.id]
+                                    val label: CellBuilder<JLabel> =
+                                        label("${item.name}  [${code?.project ?: "unknown"}]")
                                     label.component.addMouseListener(onLabelClick(item))
                                 }
                             }()
@@ -91,11 +93,20 @@ class ReviewListPanel(
         override fun mouseClicked(e: MouseEvent?) {
             val code = fileRelationMap[it.id]
             if (code != null) {
-                val psiFile = PsiManager.getInstance(project).findFile(
-                    (LocalFileSystem.getInstance()
-                        .findFileByIoFile(File("$PROJECT_PATH${code.file}"))
-                        ?: return)
-                ) ?: return
+                val findFileByIoFile = LocalFileSystem.getInstance()
+                    .findFileByIoFile(File("$PROJECT_PATH${code.file}"))
+                if (findFileByIoFile == null) {
+                    showNotification(
+                        globalProject,
+                        CodeReviewBundle.message(
+                            "c.r.notification.project.error",
+                            globalProject?.name ?: "unknown",
+                            code.project
+                        )
+                    )
+                    return
+                }
+                val psiFile = PsiManager.getInstance(project).findFile(findFileByIoFile) ?: return
                 usagePreviewPanel.updateLayoutLater(
                     listOf(
                         UsageInfo(psiFile, code.start, code.end)

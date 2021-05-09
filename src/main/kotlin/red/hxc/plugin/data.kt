@@ -14,7 +14,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 data class Position(val line: Int, val column: Int)
 
 data class Review(val userId: String, val comment: String, val code: Code)
-data class Code(val file: String, val start: Int, val end: Int)
+data class Code(val project: String, val file: String, val start: Int, val end: Int)
 
 data class MyPersistentData(
     var repository: String? = null,
