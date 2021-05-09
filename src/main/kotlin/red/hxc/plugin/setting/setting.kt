@@ -32,16 +32,7 @@ class CodeReviewSettingConfigurable : SearchableConfigurable {
         }
     }
     private val settingPanel = panel(LCFlags.flowY) {
-        row {
-            button("test") {
-                val gson = Gson()
-//                val json = trello.createCard()
-//                println(json)
-                println(gson.toJson(dataPersistent.state))
-                println(gson.toJson(cards))
-                println(gson.toJson(historyRecords))
-            }
-        }
+
     }
 
     override fun createComponent(): JComponent {

@@ -44,11 +44,6 @@ class AddReviewDialog(
                 }
             }
             row {
-                button("test") {
-                    showStartupNotification(editor.project ?: return@button)
-                }
-            }
-            row {
                 val preview = genPreviewEditor(psiFile)
                 preview?.component?.apply {
                     setSize(400, 200)
