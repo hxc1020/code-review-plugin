@@ -2,6 +2,8 @@ package red.hxc.plugin.component
 
 import com.intellij.find.FindModel
 import com.intellij.find.impl.FindInProjectUtil
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -28,7 +30,7 @@ class ReviewListPanel(
 ) : SimpleToolWindowPanel(false, true) {
     private val root = CheckedTreeNode()
     private val usagePreviewPanel =
-        UsagePreviewPanel(project, FindInProjectUtil.setupViewPresentation(false, FindModel()))
+        UsagePreviewPanel(project, FindInProjectUtil.setupViewPresentation(false, FindModel()), true)
     private val tree = CheckboxTree(MyCheckboxTreeCellRender(), root)
 
     init {
@@ -48,6 +50,11 @@ class ReviewListPanel(
                                 ?: return@addTreeSelectionListener)
                         ) ?: return@addTreeSelectionListener
                         usagePreviewPanel.updateLayoutLater(listOf(UsageInfo(psiFile, code.start, code.end)))
+                        usagePreviewPanel.apply {
+                            (getData(CommonDataKeys.EDITOR.name) as Editor).apply {
+                                settings.setGutterIconsShown(false)
+                            }
+                        }
                     }
                 }
                 updateUI()

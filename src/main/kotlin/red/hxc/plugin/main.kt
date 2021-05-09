@@ -16,6 +16,7 @@ import red.hxc.plugin.repository.meRecords
 import red.hxc.plugin.repository.todayRecords
 import red.hxc.plugin.setting.trello
 import red.hxc.plugin.setting.trelloName
+import java.util.concurrent.CompletableFuture
 
 const val CODE_REVIEW_ID = "CodeReview"
 var PROJECT_PATH: String? = null
@@ -81,11 +82,9 @@ fun refreshReviewContent() {
 
 class CodeReviewToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        trello.refreshAll()
-        contentMap[ContentTab.Today] =
-            ReviewListPanel(project).apply { reload(todayRecords) }
-        contentMap[ContentTab.Me] = ReviewListPanel(project).apply { reload(mapOf(ContentTab.Me.name to meRecords)) }
-        contentMap[ContentTab.History] = ReviewListPanel(project).apply { reload(historyRecords) }
+        contentMap[ContentTab.Today] = ReviewListPanel(project)
+        contentMap[ContentTab.Me] = ReviewListPanel(project)
+        contentMap[ContentTab.History] = ReviewListPanel(project)
 
         contentMap.forEach { (tabTitle, panel) ->
             toolWindow.contentManager.addContent(
@@ -97,6 +96,9 @@ class CodeReviewToolWindowFactory : ToolWindowFactory, DumbAware {
                     isCloseable = false
                 }
             )
+        }
+        CompletableFuture.runAsync {
+            refreshReviewContent()
         }
     }
 

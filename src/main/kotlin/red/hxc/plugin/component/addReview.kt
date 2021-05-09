@@ -10,7 +10,6 @@ import com.intellij.ui.layout.GrowPolicy
 import com.intellij.ui.layout.panel
 import org.jetbrains.annotations.NotNull
 import red.hxc.plugin.*
-import red.hxc.plugin.setting.trello
 import javax.swing.JComponent
 
 
@@ -79,7 +78,6 @@ class AddReviewDialog(
                 )
             )
         )
-        trello.refreshAll()
         refreshReviewContent()
         showNotification(editor.project, CodeReviewBundle.message("code.review.add.review.success"))
     }

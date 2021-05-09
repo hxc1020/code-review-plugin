@@ -7,6 +7,7 @@ import com.intellij.ui.layout.GrowPolicy
 import com.intellij.ui.layout.panel
 import red.hxc.plugin.dataPersistent
 import red.hxc.plugin.repository.Trello
+import java.util.concurrent.CompletableFuture
 
 val trelloName = TrelloRepositoryType().name
 
@@ -23,8 +24,10 @@ val trelloBoardsPanel = panel {
         comboBox(growPolicy = GrowPolicy.MEDIUM_TEXT)
         comboBox.addItemListener { event ->
             dataPersistent.setTrelloBoardId(userBoardsNamesMap[event.item.toString()]?.id)
-            dataPersistent.setMembers(trello.queryBoardMembers())
-            trello.refreshList()
+            CompletableFuture.runAsync {
+                dataPersistent.setMembers(trello.queryBoardMembers())
+                trello.refreshList()
+            }
         }
         dataPersistent.getTrelloBoardId()?.let {
             comboBox.item = userBoardsIdsMap[it]?.name
