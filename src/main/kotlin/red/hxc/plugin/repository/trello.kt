@@ -1,6 +1,5 @@
 package red.hxc.plugin.repository
 
-import com.intellij.tasks.trello.TrelloRepository
 import com.intellij.tasks.trello.TrelloRepositoryType
 import io.joshworks.restclient.http.HttpResponse
 import io.joshworks.restclient.http.Json
@@ -9,6 +8,7 @@ import io.joshworks.restclient.request.HttpRequestWithBody
 import red.hxc.plugin.*
 import red.hxc.plugin.repository.TrelloApi.*
 import red.hxc.plugin.setting.trello
+import red.hxc.plugin.setting.trelloRepository
 import java.time.LocalDate
 
 data class SimpleBoard(val id: String, val name: String, val memberships: List<Membership>)
@@ -70,13 +70,11 @@ var memberMap: Map<String, Member> = dataPersistent.getMembers().filter { it.id 
 
 const val FILE_RELATION_SPLITTER = "|"
 
-class Trello(
-    private val baseRepository: TrelloRepository
-) {
+class Trello {
     fun queryBoardsForMe(): List<SimpleBoard>? {
         return query(
             BOARDS_FOR_ME,
-            mapOf("id" to (baseRepository.currentUser ?: return emptyList()).id)
+            mapOf("id" to (trelloRepository?.currentUser ?: return emptyList()).id)
         )?.asListOf(SimpleBoard::class.java)
     }
 
@@ -151,7 +149,7 @@ class Trello(
     }
 
     private fun refreshMe() {
-        meRecords = baseRepository.currentUser?.let { historyRecords[memberMap[it.id]?.fullName] } ?: emptyList()
+        meRecords = trelloRepository?.currentUser?.let { historyRecords[memberMap[it.id]?.fullName] } ?: emptyList()
     }
 
     private fun refreshHistory() {
@@ -259,7 +257,7 @@ class Trello(
                 header("Accept", "application/json")
                 routeParams.forEach { routeParam(it.key, it.value) }
                 queryString("key", TrelloRepositoryType.DEVELOPER_KEY)
-                queryString("token", baseRepository.password)
+                queryString("token", trelloRepository?.password)
                 api.params.forEach { queryString(it.key, it.value) }
             }
                 .asJson()
@@ -286,7 +284,7 @@ class Trello(
         header("Accept", "application/json")
         routeParams.forEach { routeParam(it.key, it.value) }
         queryString("key", TrelloRepositoryType.DEVELOPER_KEY)
-        queryString("token", baseRepository.password)
+        queryString("token", trelloRepository?.password)
         params.forEach { queryString(it.key, it.value) }
     }
 }
