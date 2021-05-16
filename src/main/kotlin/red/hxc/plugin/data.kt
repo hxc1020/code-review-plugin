@@ -11,14 +11,12 @@ import com.intellij.openapi.vfs.VirtualFileSystem
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-data class Position(val line: Int, val column: Int)
-
 data class Review(val userId: String, val comment: String, val code: Code)
 data class Code(val project: String, val file: String, val start: Int, val end: Int)
 
 data class MyPersistentData(
     var repository: String? = null,
-    var trelloBoardId: String? = null,
+    var trelloBoard: Board? = null,
     var cardList: CardList? = null,
     var members: List<Member> = listOf()
 )
@@ -26,6 +24,12 @@ data class MyPersistentData(
 data class Member(var id: String? = null, var username: String? = null, var fullName: String? = null)
 
 data class CardList(var id: String? = null, var name: String? = null)
+
+data class Board(var id: String? = null, var name: String? = null) {
+    override fun toString(): String {
+        return name ?: ""
+    }
+}
 
 @State(name = "codeReviewData", storages = [Storage("code-review.xml")])
 class DataPersistentService :
@@ -37,9 +41,9 @@ class DataPersistentService :
         data.repository = value
     }
 
-    fun getTrelloBoardId() = data.trelloBoardId
-    fun setTrelloBoardId(value: String?) {
-        data.trelloBoardId = value
+    fun getTrelloBoard() = data.trelloBoard
+    fun setTrelloBoard(value: Board?) {
+        data.trelloBoard = value
     }
 
     fun getCardList() = data.cardList
@@ -58,6 +62,10 @@ class DataPersistentService :
 
     override fun loadState(state: MyPersistentData) {
         XmlSerializerUtil.copyBean(state, data)
+    }
+
+    fun clear() {
+        this.data = MyPersistentData()
     }
 }
 

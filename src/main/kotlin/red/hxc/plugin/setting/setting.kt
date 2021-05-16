@@ -10,6 +10,7 @@ import com.intellij.ui.layout.LCFlags
 import com.intellij.ui.layout.panel
 import com.intellij.ui.layout.selectedValueIs
 import red.hxc.plugin.dataPersistent
+import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 
 const val CODE_REVIEW_SETTING_ID = "code.review.setting.id"
@@ -37,11 +38,18 @@ class CodeReviewSettingConfigurable : SearchableConfigurable {
     private val settingPanel = panel(LCFlags.flowY) {
         row {
             button("Refresh") {
-                repositoryComBox = getRepositoryComboBox()
-                repositoryPanel.validate()
-                repositoryPanel.repaint()
+                refresh()
             }
         }
+    }
+
+    private fun refresh() {
+        dataPersistent.clear()
+        repositoryComBox.removeAllItems()
+        repositoryComBox.model = DefaultComboBoxModel(listOf("").plus(getRepositoryNameMap().keys).toTypedArray())
+        repositoryComBox.updateUI()
+        repositoryComBox.validate()
+        repositoryComBox.repaint()
     }
 
     override fun createComponent(): JComponent {

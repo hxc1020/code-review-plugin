@@ -39,7 +39,7 @@ class CodeReviewComponent(private val project: Project) : Disposable {
 
     private fun initRepository() {
         if (dataPersistent.getRepository() == trelloName) {
-            val trelloBoardId = dataPersistent.getTrelloBoardId()
+            val trelloBoardId = dataPersistent.getTrelloBoard()
             trelloBoardId ?: showNotification(project, CodeReviewBundle.message("c.r.notification.need.config"))
         }
     }

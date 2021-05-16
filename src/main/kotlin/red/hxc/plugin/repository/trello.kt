@@ -101,14 +101,6 @@ class Trello {
         }
     }
 
-    fun queryCurrentBoard(): Json? {
-        val boardId = dataPersistent.getTrelloBoardId() ?: return null
-        return query(
-            BOARD,
-            routeParams = mapOf("id" to boardId)
-        )
-    }
-
     fun refreshAll() {
         cards = trello.queryCards() ?: return
         refreshHistory()
@@ -163,10 +155,10 @@ class Trello {
     }
 
     private fun queryList(): List<CardList>? {
-        val boardId = dataPersistent.getTrelloBoardId() ?: return null
+        val board = dataPersistent.getTrelloBoard() ?: return null
         return query(
             BOARD_LIST,
-            routeParams = mapOf("id" to boardId)
+            routeParams = mapOf("id" to (board.id ?: return null))
         )?.asListOf(CardList::class.java)
     }
 
@@ -220,7 +212,7 @@ class Trello {
     fun queryBoardMembers(): List<Member>? {
         return query(
             BOARD_MEMBERS,
-            mapOf("id" to (dataPersistent.getTrelloBoardId() ?: return null))
+            mapOf("id" to (dataPersistent.getTrelloBoard()?.id ?: return null))
         )?.`as`(BoardMembers::class.java)?.members
     }
 
@@ -229,7 +221,7 @@ class Trello {
             CREATE_LIST,
             params = mapOf(
                 "name" to listOf("${today.year}-${today.monthValue}"),
-                "idBoard" to listOf((dataPersistent.getTrelloBoardId() ?: return null))
+                "idBoard" to listOf((dataPersistent.getTrelloBoard()?.id ?: return null))
             )
         )?.`as`(CardList::class.java)
 
