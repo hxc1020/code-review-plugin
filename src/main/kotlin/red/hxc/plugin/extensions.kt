@@ -6,7 +6,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import git4idea.annotate.GitAnnotationProvider
-import org.intellij.plugins.markdown.structureView.MarkdownStructureViewFactory
 
 val Project.editorService: EditorService?
     get() = getServiceIfNotDisposed(EditorService::class.java)
@@ -20,12 +19,6 @@ val Project.gitAnnotationProvider: GitAnnotationProvider?
     get() =
         if (!isDisposed) getServiceIfNotDisposed(GitAnnotationProvider::class.java)
         else null
-
-val Project.markdown: MarkdownStructureViewFactory?
-    get() =
-        if (!isDisposed) getServiceIfNotDisposed(MarkdownStructureViewFactory::class.java)
-        else null
-
 
 fun <T : Any> Project.getServiceIfNotDisposed(serviceClass: Class<T>): T? =
     if (!isDisposed) ServiceManager.getService(this, serviceClass)

@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "red.hxc"
-version = "1.0-SNAPSHOT"
+version = "0.01.2 Alfa"
 
 repositories {
     mavenCentral()
@@ -35,8 +35,9 @@ tasks.getByName<Test>("test") {
 }
 tasks.getByName<org.jetbrains.intellij.tasks.PatchPluginXmlTask>("patchPluginXml") {
     changeNotes("""
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>""")
+      version: 0.01 Alfa
+      Integration trello
+      """)
 }
 
 java{
